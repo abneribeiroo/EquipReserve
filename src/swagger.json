@@ -1,0 +1,768 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Equipment Reservation API",
+        "description": "A robust API for managing users, equipment, and reservations. This API allows you to create, read, update, and delete (CRUD) users and equipment, as well as manage equipment reservations efficiently.",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "url": "http://www.swagger.io/support",
+            "email": "eliasabner38@gmail.com"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8080",
+            "description": "Local server"
+        }
+    ],
+    "components": {
+        "schemas": {
+            "User": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Name of the user"
+                    },
+                    "email": {
+                        "type": "string",
+                        "description": "Email address of the user"
+                    },
+                    "password": {
+                        "type": "string",
+                        "minLength": 8,
+                        "description": "Password must be at least 8 characters long"
+                    },
+                    "role": {
+                        "type": "string",
+                        "description": "Role of the user (e.g., admin, user)"
+                    }
+                },
+                "required": [
+                    "name",
+                    "email",
+                    "password",
+                    "role"
+                ]
+            },
+            "Equipment": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Name of the equipment"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Description of the equipment"
+                    },
+                    "availability": {
+                        "type": "boolean",
+                        "description": "Availability status of the equipment"
+                    }
+                },
+                "required": [
+                    "name",
+                    "description",
+                    "availability"
+                ]
+            },
+            "Reservation": {
+                "type": "object",
+                "properties": {
+                    "userId": {
+                        "type": "string",
+                        "description": "ID of the user making the reservation"
+                    },
+                    "equipmentId": {
+                        "type": "string",
+                        "description": "ID of the equipment being reserved"
+                    },
+                    "reservationDate": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "Date and time of the reservation"
+                    }
+                },
+                "required": [
+                    "userId",
+                    "equipmentId",
+                    "reservationDate"
+                ]
+            }
+        },
+        "securitySchemes": {
+            "BearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            }
+        }
+    },
+    "security": [
+        {
+            "BearerAuth": []
+        }
+    ],
+    "tags": [
+        {
+            "name": "User Management",
+            "description": "Operations related to managing users"
+        },
+        {
+            "name": "Equipment Management",
+            "description": "Operations related to managing equipment"
+        },
+        {
+            "name": "Reservations",
+            "description": "Operations related to managing equipment reservations"
+        }
+    ],
+    "paths": {
+        "/api/users": {
+            "post": {
+                "summary": "Create a new user",
+                "operationId": "createUser",
+                "tags": [
+                    "User Management"
+                ],
+                "requestBody": {
+                    "description": "User data to create a new user",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/User"
+                            },
+                            "example": {
+                                "name": "John Doe",
+                                "email": "john.doe@example.com",
+                                "password": "password123",
+                                "role": "admin"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "User created successfully",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "id": "123",
+                                    "name": "John Doe",
+                                    "email": "john.doe@example.com",
+                                    "role": "admin"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "User already exists",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "error": "User already exists with email 'john.doe@example.com'."
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to register user"
+                    }
+                }
+            },
+            "get": {
+                "summary": "Get all users",
+                "operationId": "getAllUsers",
+                "tags": [
+                    "User Management"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of users",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/User"
+                                    }
+                                },
+                                "example": [
+                                    {
+                                        "id": "123",
+                                        "name": "John Doe",
+                                        "email": "john.doe@example.com",
+                                        "role": "admin"
+                                    },
+                                    {
+                                        "id": "124",
+                                        "name": "Jane Smith",
+                                        "email": "jane.smith@example.com",
+                                        "role": "user"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "No users found"
+                    },
+                    "500": {
+                        "description": "Failed to retrieve users"
+                    }
+                }
+            }
+        },
+        "/api/users/{userId}": {
+            "get": {
+                "summary": "Get user by ID",
+                "operationId": "getUserById",
+                "tags": [
+                    "User Management"
+                ],
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/User"
+                                },
+                                "example": {
+                                    "id": "123",
+                                    "name": "John Doe",
+                                    "email": "john.doe@example.com",
+                                    "role": "admin"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "error": "User with ID '123' not found."
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to retrieve user"
+                    }
+                }
+            },
+            "put": {
+                "summary": "Update user by ID",
+                "operationId": "updateUser",
+                "tags": [
+                    "User Management"
+                ],
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Updated user data",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/User"
+                            },
+                            "example": {
+                                "name": "John Doe",
+                                "email": "john.new@example.com",
+                                "role": "admin"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User updated successfully"
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "error": "User with ID '123' not found."
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to update user"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Delete user by ID",
+                "operationId": "deleteUser",
+                "tags": [
+                    "User Management"
+                ],
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "User deleted successfully"
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "error": "User with ID '123' not found."
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to delete user"
+                    }
+                }
+            }
+        },
+        "/api/equipment": {
+            "get": {
+                "summary": "Get all equipment",
+                "operationId": "getAllEquipment",
+                "tags": [
+                    "Equipment Management"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of equipment",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Equipment"
+                                    }
+                                },
+                                "example": [
+                                    {
+                                        "id": "456",
+                                        "name": "Projector",
+                                        "description": "A high-quality projector",
+                                        "availability": true
+                                    },
+                                    {
+                                        "id": "457",
+                                        "name": "Laptop",
+                                        "description": "A powerful laptop for presentations",
+                                        "availability": false
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "No equipment found"
+                    },
+                    "500": {
+                        "description": "Failed to retrieve equipment"
+                    }
+                }
+            },
+            "post": {
+                "summary": "Add new equipment",
+                "operationId": "addEquipment",
+                "tags": [
+                    "Equipment Management"
+                ],
+                "requestBody": {
+                    "description": "Equipment data to create new equipment",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Equipment"
+                            },
+                            "example": {
+                                "name": "Whiteboard",
+                                "description": "A large whiteboard for meetings",
+                                "availability": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Equipment created successfully",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "id": "458",
+                                    "name": "Whiteboard",
+                                    "description": "A large whiteboard for meetings",
+                                    "availability": true
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Equipment already exists",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "error": "Equipment already exists with the same name."
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to add equipment"
+                    }
+                }
+            }
+        },
+        "/api/equipment/{equipmentId}": {
+            "get": {
+                "summary": "Get equipment by ID",
+                "operationId": "getEquipmentById",
+                "tags": [
+                    "Equipment Management"
+                ],
+                "parameters": [
+                    {
+                        "name": "equipmentId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Equipment found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Equipment"
+                                },
+                                "example": {
+                                    "id": "456",
+                                    "name": "Projector",
+                                    "description": "A high-quality projector",
+                                    "availability": true
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Equipment not found",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "error": "Equipment with ID '456' not found."
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to retrieve equipment"
+                    }
+                }
+            },
+            "put": {
+                "summary": "Update equipment by ID",
+                "operationId": "updateEquipment",
+                "tags": [
+                    "Equipment Management"
+                ],
+                "parameters": [
+                    {
+                        "name": "equipmentId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Updated equipment data",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Equipment"
+                            },
+                            "example": {
+                                "name": "Projector HD",
+                                "description": "An upgraded high-quality projector",
+                                "availability": true
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Equipment updated successfully"
+                    },
+                    "404": {
+                        "description": "Equipment not found",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "error": "Equipment with ID '456' not found."
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to update equipment"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Delete equipment by ID",
+                "operationId": "deleteEquipment",
+                "tags": [
+                    "Equipment Management"
+                ],
+                "parameters": [
+                    {
+                        "name": "equipmentId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Equipment deleted successfully"
+                    },
+                    "404": {
+                        "description": "Equipment not found",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "error": "Equipment with ID '456' not found."
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to delete equipment"
+                    }
+                }
+            }
+        },
+        "/api/reservations": {
+            "post": {
+                "summary": "Create a reservation",
+                "operationId": "createReservation",
+                "tags": [
+                    "Reservations"
+                ],
+                "requestBody": {
+                    "description": "Reservation data",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Reservation"
+                            },
+                            "example": {
+                                "userId": "123",
+                                "equipmentId": "456",
+                                "reservationDate": "2024-10-08T15:30:00Z"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Reservation created successfully",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "id": "789",
+                                    "userId": "123",
+                                    "equipmentId": "456",
+                                    "reservationDate": "2024-10-08T15:30:00Z"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid reservation data",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "error": "Invalid user ID or equipment ID."
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to create reservation"
+                    }
+                }
+            },
+            "get": {
+                "summary": "Get all reservations",
+                "operationId": "getAllReservations",
+                "tags": [
+                    "Reservations"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of reservations",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Reservation"
+                                    }
+                                },
+                                "example": [
+                                    {
+                                        "id": "789",
+                                        "userId": "123",
+                                        "equipmentId": "456",
+                                        "reservationDate": "2024-10-08T15:30:00Z"
+                                    },
+                                    {
+                                        "id": "790",
+                                        "userId": "124",
+                                        "equipmentId": "457",
+                                        "reservationDate": "2024-10-09T10:00:00Z"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "No reservations found"
+                    },
+                    "500": {
+                        "description": "Failed to retrieve reservations"
+                    }
+                }
+            }
+        },
+        "/api/reservations/{reservationId}": {
+            "get": {
+                "summary": "Get reservation by ID",
+                "operationId": "getReservationById",
+                "tags": [
+                    "Reservations"
+                ],
+                "parameters": [
+                    {
+                        "name": "reservationId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Reservation found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Reservation"
+                                },
+                                "example": {
+                                    "id": "789",
+                                    "userId": "123",
+                                    "equipmentId": "456",
+                                    "reservationDate": "2024-10-08T15:30:00Z"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Reservation not found",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "error": "Reservation with ID '789' not found."
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to retrieve reservation"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Delete reservation by ID",
+                "operationId": "deleteReservation",
+                "tags": [
+                    "Reservations"
+                ],
+                "parameters": [
+                    {
+                        "name": "reservationId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Reservation deleted successfully"
+                    },
+                    "404": {
+                        "description": "Reservation not found",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "error": "Reservation with ID '789' not found."
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to delete reservation"
+                    }
+                }
+            }
+        }
+    }
+}
